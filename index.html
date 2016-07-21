@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Laravel Deployer</title>
+    <link href="https://fonts.googleapis.com/css?family=Slabo+27px" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        body {
+           font-family: 'Slabo 27px', serif;
+           color: #999;
+        }
+        h1 {
+            color: #555;
+        }
+        #upload {
+        	width: 100%;
+        	max-width: 600px;
+        	min-height: 300px;
+        	border: 3px dashed #ccc;
+        	cursor: pointer;
+        	border-radius: 10px;
+        	font-weight: bold;
+        	position: relative;
+        	display: table;
+        }
+        #upload:hover {
+        	border-color: #999;
+        }
+        .message {
+        	display: table-cell;
+        	vertical-align: middle;
+        	font-size: 80px;
+        }
+        .message div {
+        	color: #999;
+        	font-size: 20px;
+        }
+        .waiting {
+        	color: #3498db;
+        }
+        .success {
+        	color: #2ecc71;
+        }
+        .error {
+        	color: #e74c3c;
+        }
+	.author {
+	    color: #ccc;
+	    margin-top: 30px;
+	}
+	.progress {
+	    height: 30px;
+	    width: 300px;
+	    margin-top: 20px;
+	    border-radius: 20px;
+	    background: #eee;
+	    overflow: hidden;
+	}
+	.progressbar {
+	    height: 100%;
+	    width: 0;
+	    float: left;
+	    background: #1abc9c;
+	    border-radius: 20px;
+	    transition: .5s width;
+	}
+    </style>
+  </head>
+  <body>
+    <center>
+    
+    <h1>Laravel Deployer</h1>
+    
+	<div id="upload">
+		<div class="message">
+			<i class="fa fa-cloud-upload"></i>
+			<div>Drop your ZIP file</div>
+		</div>
+	</div>
+        
+        <div class="author">&copy; Bluroe Labs 2016</span>
+    </center>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/4.3.0/dropzone.js"></script>
+    <script>
+    	function waiting() {
+    		$(".message").removeClass('success').removeClass('error').addClass('waiting').empty()
+    			.append($("<i>").addClass('fa fa-refresh fa-spin'))
+    			.append($('<div>').text('Uploading'))
+    			.append(
+    				$('<div>').addClass('progress')
+    				.append($('<div>').addClass('progressbar'))
+    			)
+    	}
+    	function complete() {
+    		$(".message").removeClass('waiting').addClass('success').empty()
+    			.append($("<i>").addClass('fa fa-check'))
+    			.append($('<div>').text('Deployed'));
+    	}
+    	function error() {
+    		$(".message").removeClass('waiting').addClass('error').empty()
+    			.append($("<i>").addClass('fa fa-cross'))
+    			.append($('<div>').text('Error'));
+    	}
+	$(document).ready(function() {
+		$("div#upload").dropzone({
+			url: "/deploy/deploy.php",
+			paramName: 'file',
+			accept: function(file, done) {
+				console.log('accepted');
+				waiting();
+				done();
+			},
+			addedfile: function() {
+				console.log('file added');
+			},
+			complete: function() {
+				console.log('complete');
+			},
+			previewTemplate: '<div></div>',
+			maxFilesize: 20,
+			uploadprogress: function(file, progress, bytesSent) {
+				// Display the progress
+				$('.progressbar').css('width', progress + '%'); 
+			},
+			success: function() {
+				complete();
+			},
+			error: function() {
+				error();
+			}
+		});
+	});
+    </script>
+  </body>
+</html>
