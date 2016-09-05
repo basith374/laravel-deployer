@@ -1,42 +1,75 @@
 <?php
+error_reporting(E_ERROR);
+set_time_limit(120);
 
-$path = 'upload.zip';
+$zipfile = 'upload.zip';
 
-move_uploaded_file($_FILES['file']['tmp_name'], './' . $path);
+$file = $_FILES['file']['tmp_name'];
+if(file_exists($file)) {
 
-$extract_path = '/home/nexthome/';
+    move_uploaded_file($file, './' . $zipfile);
 
-if(!file_exists($extract_path)) {
-	mkdir($extract_path);
+    $extract_path = './extract/';
+
+    if(!file_exists($extract_path)) {
+    	mkdir($extract_path);
+    }
+
+    $zip = new ZipArchive;
+    if ($zip->open($zipfile) === true) {
+		// $uploaded_pass = fopen('zip://' . $zipfile . '#deployer', 'r')
+		// if($uploaded_pass === false) {
+		// 	abort('no credentials provided');
+		// }
+		// $local_pass = fopen($extract_path . 'deployer', 'r');
+		// if($local_pass === false) {
+		// 	abort('local credentials not found');
+		// }
+		// if(fgets($uploaded_pass) === fgets($local_pass)) {
+			
+		    for($i = 0; $i < $zip->numFiles; $i++) {
+		        $filename = $zip->getNameIndex($i);
+		        $fileinfo = pathinfo($filename);
+		        $target = $filename;
+		        // extract "public" in "public_path" dir
+		        if(startsWith($filename, 'public/')) {
+				$target = 'public_html' . substr($filename, 6);
+		        }
+		        if ( substr( $target, -1 ) == '/' ) {
+		        	$target = $extract_path . $target;
+		        	if(!file_exists($target)) {
+		        		mkdir($target);
+		        	}
+		        	continue; // skip directories 
+		        }
+		       	copy("zip://" . $zipfile . "#" . $filename, $extract_path . $target);
+		    }
+		    
+		// } else {
+			// fclose($uploaded_pass);
+			// fclose($local_pass);
+		 //    $zip->close();
+			// abort('invalid credentials');
+		// }
+		fclose($uploaded_pass);
+		fclose($local_pass);
+        $zip->close();
+        echo 'deployed';
+    }
+} else {
+    abort('no file specified');
 }
+
 
 function startsWith($haystack, $needle) {
     // search backwards starting from haystack length characters from the end
     return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
 
-$zip = new ZipArchive;
-if ($zip->open($path) === true) {
-    for($i = 0; $i < $zip->numFiles; $i++) {
-        $filename = $zip->getNameIndex($i);
-        $fileinfo = pathinfo($filename);
-        $target = $filename;
-        if(startsWith($filename, 'public/')) {
-		$target = 'public_html' . substr($filename, 6);
-        }
-        if ( substr( $target, -1 ) == '/' ) {
-        	$target = $extract_path . $target;
-        	if(!file_exists($target)) {
-        		mkdir($target);
-        	}
-        	continue; // skip directories 
-        }
-//	echo $filename . '<br>';
-//	echo $fileinfo['basename'] . '<br>';
-       	copy("zip://" . $path . "#" . $filename, $extract_path . $target);
-//        copy("zip://".$path."#".$filename, $extract_path.$fileinfo['basename']);
-    }                   
-    $zip->close();                   
+function abort($message) {
+	header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
+	die($message);
 }
+
 
 ?>
