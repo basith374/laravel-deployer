@@ -4,17 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="http://res.cloudinary.com/bluroe-labs/image/upload/v1468322234/blu_16_qdetgw.png" rel="icon">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Laravel Deployer</title>
+    <title>Bluroe Deployer</title>
     <style>
         body {
-           font-family: sans-serif;
+           font-family: "Open Sans", sans-serif;
            font-size: 13px;
            color: #999;
         }
         h1 {
             color: #555;
-            font-size: 34px;
+            font-size: 24px;
+        }
+        .container {
+            text-align: center;
         }
         #upload {
             width: 100%;
@@ -23,7 +28,7 @@
             border: 3px dashed #ccc;
             cursor: pointer;
             border-radius: 10px;
-            /*font-weight: bold;*/
+            margin: 0 auto;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,13 +40,24 @@
         #upload.drag {
             border-style: solid;
         }
+        #upload.idle {}
+        #upload.waiting {}
+        #upload.complete {}
+        #upload.error {}
+        #upload svg {
+            pointer-events: none;
+            transition: .3s transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #upload.idle:hover svg, #upload.drag svg {
+            transform: translateY(-5px);
+        }
         .message {
-            font-size: 20px;
+            font-size: 13px;
         }
         .author {
             color: #ccc;
             margin-top: 30px;
-            font-size: 15px;
+            font-size: 11px;
         }
         .progress {
             height: 30px;
@@ -61,6 +77,19 @@
         }
         .rotating {
             animation: spin 1.5s linear infinite;
+        }
+        .fadeIn {
+            animation: fadeIn .2s linear;
+        }
+        @keyframes fadeIn {
+            0% {
+                transform: translateY(5px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         @keyframes spin {
@@ -90,11 +119,11 @@
     </script>
   </head>
   <body>
-    <center>
+    <div class="container">
     
-        <h1>Laravel Deployer</h1>
+        <h1>Bluroe Deployer</h1>
         
-        <div id="upload" style="display:none;">
+        <div id="upload" class="idle" style="display:none;">
             <div class="message">
             </div>
         </div>
@@ -104,25 +133,47 @@
         </form>
         
         <div class="author">&copy; Bluroe Labs 2016</span>
-    </center>
+    </div>
 
     <script>
         if('draggable' in document.createElement('div')) {
             document.querySelector('form').style.display = 'none';
             document.getElementById('upload').style.display = 'flex';
         }
-        document.querySelector('.message').innerHTML = idleIcon +
-            '<div>Drop your ZIP file</div>';
+        var idleText = '<div>Drop your ZIP file</div>';
+        document.querySelector('.message').innerHTML = idleIcon + idleText;
+        function idle() {
+            var upload = document.getElementById('upload');
+            var classes = upload.className;
+            var message = document.querySelector('.message');
+            if(classes.indexOf('complete') > -1) {
+                classes = classes.replace('complete', '');
+                message.className = message.className.replace('fadeIn', '').trim();
+            }
+            if(classes.indexOf('error') > -1) {
+                classes = classes.replace('error', '');
+            }
+            upload.className = classes.concat(' idle').trim();
+            message.innerHTML = idleIcon + idleText; 
+        }
         function waiting() {
+            var upload = document.getElementById('upload');
+            upload.className = upload.className.replace('idle', '').concat(' waiting');
             document.querySelector('.message').innerHTML = loadingIcon + 
                 '<div>Uploading</div>' +
                 '<div class="progress"><div class="progressbar"></div></div>';
         }
         function complete() {
-            document.querySelector('.message').innerHTML = successIcon + 
+            var upload = document.getElementById('upload');
+            upload.className = upload.className.replace('idle', '').replace('waiting', '').concat(' complete').trim();
+            var message = document.querySelector('.message');
+            message.className = message.className + ' fadeIn';
+            message.innerHTML = successIcon + 
                 '<div>Deployed</div>';
         }
         function error(err) {
+            var upload = document.getElementById('upload');
+            upload.className = upload.className.replace('idle','').replace('waiting', '').concat(' error').trim();
             document.querySelector('.message').innerHTML = errorIcon + 
                 '<div>Error : ' + err + '</div>';
         }
@@ -135,6 +186,19 @@
                 uploadFile(this.files[0]);
                 document.querySelector('form').reset();
             }
+        });
+        document.getElementById('upload').addEventListener('mouseenter', function() {
+            if(this.className.indexOf('hover') == -1) {
+                this.className = this.className.concat(' hover').trim();
+            }
+            if(this.className.indexOf('complete') > -1 || this.className.indexOf('error') > -1) {
+                idle();
+            }
+        });
+        document.getElementById('upload').addEventListener('mouseleave', function() {
+            this.className = this.className.split(' ').filter(function(v) {
+                return v != 'hover';
+            }).join(' ');
         });
         document.getElementById('upload').addEventListener('dragenter', function(e) {
             e.stopPropagation();

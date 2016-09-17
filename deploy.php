@@ -17,7 +17,7 @@ if(file_exists($file)) {
 
     $zip = new ZipArchive;
     if ($zip->open($zipfile) === true) {
-		// $uploaded_pass = fopen('zip://' . $zipfile . '#deployer', 'r')
+		// $uploaded_pass = fopen('zip://' . $zipfile . '#deployer', 'r');
 		// if($uploaded_pass === false) {
 		// 	abort('no credentials provided');
 		// }
