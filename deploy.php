@@ -3,9 +3,9 @@ error_reporting(E_ERROR);
 set_time_limit(120);
 
 $extract_path = './extract/';
+$public_convert = true;
 	
 $zipfile = 'upload.zip';
-$public_convert = true;
 
 $file = $_FILES['file']['tmp_name'];
 if(file_exists($file)) {
