@@ -3,6 +3,7 @@ error_reporting(E_ERROR);
 set_time_limit(120);
 
 $zipfile = 'upload.zip';
+$public_convert = true;
 
 $file = $_FILES['file']['tmp_name'];
 if(file_exists($file)) {
@@ -32,8 +33,8 @@ if(file_exists($file)) {
 		        $fileinfo = pathinfo($filename);
 		        $target = $filename;
 		        // extract "public" in "public_path" dir
-		        if(startsWith($filename, 'public/')) {
-				$target = 'public_html' . substr($filename, 6);
+		        if($public_convert && startsWith($filename, 'public/')) {
+				    $target = 'public_html' . substr($filename, 6);
 		        }
 		        if ( substr( $target, -1 ) == '/' ) {
 		        	$target = $extract_path . $target;
